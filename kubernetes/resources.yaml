@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: restgdf_api
-        image: joshuasundance/restgdf_api:0.0.1
+        image: joshuasundance/restgdf_api:1.0.0
         imagePullPolicy: Always
         resources:
           requests:
