@@ -14,4 +14,6 @@ RUN pip install --user --no-cache-dir  --upgrade -r /home/appuser/requirements.t
 COPY ./restgdf_api /home/appuser/restgdf_api
 WORKDIR /home/appuser/restgdf_api
 
+EXPOSE 8080
+
 CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8080"]
