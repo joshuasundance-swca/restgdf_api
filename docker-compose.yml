@@ -1,0 +1,11 @@
+version: '3.8'
+
+services:
+  restgdf_api:
+    image: restgdf_api:latest
+    build: .
+    container_name: restgdf_api
+    ports:
+      - "${APP_PORT:-8080}:${APP_PORT:-8080}"
+    working_dir: /home/appuser/restgdf_api
+    command: ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "${APP_PORT:-8080}"]
