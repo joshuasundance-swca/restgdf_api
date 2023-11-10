@@ -4,7 +4,7 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from restgdf import Rest
 
-__version__ = "1.0.0"
+__version__ = "1.0.1"
 
 app = FastAPI(
     title="restgdf_api",
