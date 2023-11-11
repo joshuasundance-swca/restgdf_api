@@ -1,5 +1,5 @@
 import os
-from typing import Optional
+from typing import Optional, Any
 
 from aiohttp import ClientSession
 from fastapi import FastAPI, HTTPException
@@ -7,7 +7,7 @@ from langchain.chat_models import ChatOpenAI
 from langchain.prompts.chat import ChatPromptTemplate
 from langchain.schema.runnable import RunnablePassthrough
 from pydantic import BaseModel
-from restgdf import Rest
+from restgdf import FeatureLayer, Directory
 
 __version__ = "2.1.1"
 
@@ -28,8 +28,30 @@ class SummarizedGeoDataFrameResponse(GeoDataFrameResponse):
     summary: str
 
 
+class LayersResponse(BaseModel):
+    layers: dict[str, dict[str, Any]]
+
+
 class UniqueValuesResponse(BaseModel):
     values: list
+
+
+@app.post("/getlayers/", response_model=LayersResponse)
+async def get_layers(url: str, token: Optional[str] = None):
+    """Retrieve Layers from an ArcGIS Services Directory."""
+    try:
+        async with ClientSession() as session:
+            rest_obj = await Directory.from_url(
+                url,
+                session=session,
+                token=token,
+            )
+            return LayersResponse(layers=rest_obj.data)
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error retrieving Layers: {str(e)}",
+        )
 
 
 @app.post("/getgdf/", response_model=GeoDataFrameResponse)
@@ -37,7 +59,7 @@ async def get_gdf(url: str, token: Optional[str] = None, where: str = "1=1"):
     """Retrieve a GeoDataFrame from an ArcGIS FeatureLayer."""
     try:
         async with ClientSession() as session:
-            rest_obj = await Rest.from_url(
+            rest_obj = await FeatureLayer.from_url(
                 url,
                 token=token,
                 where=where,
@@ -105,7 +127,7 @@ async def get_summarized_gdf(
         )
     try:
         async with ClientSession() as session:
-            rest_obj = await Rest.from_url(
+            rest_obj = await FeatureLayer.from_url(
                 url,
                 token=token,
                 where=where,
@@ -159,7 +181,7 @@ async def get_head(
     """Retrieve a GeoDataFrame from an ArcGIS FeatureLayer."""
     try:
         async with ClientSession() as session:
-            rest_obj = await Rest.from_url(
+            rest_obj = await FeatureLayer.from_url(
                 url,
                 token=token,
                 where=where,
@@ -188,7 +210,7 @@ async def get_sample(
     """Retrieve a GeoDataFrame from an ArcGIS FeatureLayer."""
     try:
         async with ClientSession() as session:
-            rest_obj = await Rest.from_url(
+            rest_obj = await FeatureLayer.from_url(
                 url,
                 token=token,
                 where=where,
@@ -212,7 +234,7 @@ async def get_unique_values(url: str, field: str, token: Optional[str] = None):
     """Get the unique values for a field in an ArcGIS FeatureLayer."""
     try:
         async with ClientSession() as session:
-            rest_obj = await Rest.from_url(url, token=token, session=session)
+            rest_obj = await FeatureLayer.from_url(url, token=token, session=session)
             unique_values = await rest_obj.getuniquevalues(field)
             return UniqueValuesResponse(values=unique_values)
     except Exception as e:
