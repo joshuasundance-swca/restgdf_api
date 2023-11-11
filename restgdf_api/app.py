@@ -36,7 +36,7 @@ class UniqueValuesResponse(BaseModel):
 async def get_gdf(url: str, token: Optional[str] = None, where: str = "1=1"):
     """Retrieve a GeoDataFrame from an ArcGIS FeatureLayer."""
     try:
-        with ClientSession() as session:
+        async with ClientSession() as session:
             rest_obj = await Rest.from_url(
                 url,
                 token=token,
@@ -104,7 +104,7 @@ async def get_summarized_gdf(
             detail="Summarization is not enabled.",
         )
     try:
-        with ClientSession() as session:
+        async with ClientSession() as session:
             rest_obj = await Rest.from_url(
                 url,
                 token=token,
@@ -158,7 +158,7 @@ async def get_head(
 ):
     """Retrieve a GeoDataFrame from an ArcGIS FeatureLayer."""
     try:
-        with ClientSession() as session:
+        async with ClientSession() as session:
             rest_obj = await Rest.from_url(
                 url,
                 token=token,
@@ -187,7 +187,7 @@ async def get_sample(
 ):
     """Retrieve a GeoDataFrame from an ArcGIS FeatureLayer."""
     try:
-        with ClientSession() as session:
+        async with ClientSession() as session:
             rest_obj = await Rest.from_url(
                 url,
                 token=token,
@@ -211,7 +211,7 @@ async def get_sample(
 async def get_unique_values(url: str, field: str, token: Optional[str] = None):
     """Get the unique values for a field in an ArcGIS FeatureLayer."""
     try:
-        with ClientSession() as session:
+        async with ClientSession() as session:
             rest_obj = await Rest.from_url(url, token=token, session=session)
             unique_values = await rest_obj.getuniquevalues(field)
             return UniqueValuesResponse(values=unique_values)
