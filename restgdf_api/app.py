@@ -9,7 +9,7 @@ from langchain.schema.runnable import RunnablePassthrough
 from pydantic import BaseModel
 from restgdf import Rest
 
-__version__ = "2.0.0"
+__version__ = "2.1.0"
 
 app = FastAPI(
     title="restgdf_api",
