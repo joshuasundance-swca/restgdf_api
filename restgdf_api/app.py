@@ -9,7 +9,7 @@ from langchain.schema.runnable import RunnablePassthrough
 from pydantic import BaseModel
 from restgdf import FeatureLayer, Directory
 
-__version__ = "3.0.1"
+__version__ = "3.0.2"
 
 app = FastAPI(
     title="restgdf_api",
