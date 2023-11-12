@@ -3,6 +3,7 @@ from fastapi import FastAPI
 from directory import directory_router
 from layer import layer_router
 from mappingsupport import mappingsupport_router
+from vcgov import vcgov_router
 
 __version__ = "3.3.1"
 
@@ -15,3 +16,4 @@ app = FastAPI(
 app.include_router(mappingsupport_router)
 app.include_router(directory_router)
 app.include_router(layer_router)
+app.include_router(vcgov_router)

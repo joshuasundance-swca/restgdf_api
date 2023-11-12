@@ -21,7 +21,7 @@ from models import (
 layer_router = APIRouter(prefix="/layer", tags=["layer"])
 
 
-@layer_router.post("/", response_model=GeoDataFrameResponse)
+@layer_router.get("/", response_model=GeoDataFrameResponse)
 async def layer(
     url: str,
     token: Optional[str] = None,
@@ -49,7 +49,7 @@ async def layer(
         )
 
 
-@layer_router.post("/multiple/", response_model=MultiGeoDataFrameResponse)
+@layer_router.get("/multiple/", response_model=MultiGeoDataFrameResponse)
 async def layers(
     request: MultiGeoDataFrameRequest,
     session: ClientSession = Depends(get_session),
@@ -108,7 +108,7 @@ Combine these individual summaries of features into a single summary of the data
 )
 
 
-@layer_router.post("/summarized/", response_model=SummarizedGeoDataFrameResponse)
+@layer_router.get("/summarized/", response_model=SummarizedGeoDataFrameResponse)
 async def summarized_layer(
     url: str,
     token: Optional[str] = None,
@@ -174,7 +174,7 @@ async def summarized_layer(
         )
 
 
-@layer_router.post("/head/", response_model=GeoDataFrameResponse)
+@layer_router.get("/head/", response_model=GeoDataFrameResponse)
 async def layer_head(
     url: str,
     n: int = 10,
@@ -203,7 +203,7 @@ async def layer_head(
         )
 
 
-@layer_router.post("/sample/", response_model=GeoDataFrameResponse)
+@layer_router.get("/sample/", response_model=GeoDataFrameResponse)
 async def layer_sample(
     url: str,
     n: int = 10,
@@ -232,7 +232,7 @@ async def layer_sample(
         )
 
 
-@layer_router.post("/unique/", response_model=UniqueValuesResponse)
+@layer_router.get("/unique/", response_model=UniqueValuesResponse)
 async def unique_values(
     url: str,
     field: str,

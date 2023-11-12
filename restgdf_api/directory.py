@@ -21,7 +21,7 @@ from models import (
 directory_router = APIRouter(prefix="/directory", tags=["directory"])
 
 
-@directory_router.post("/", response_model=LayersResponse)
+@directory_router.get("/", response_model=LayersResponse)
 async def directory(
     url: str,
     token: Optional[str] = None,
@@ -39,7 +39,7 @@ async def directory(
         return LayersResponse(error=str(e))
 
 
-@directory_router.post("/multiple/", response_model=MultiLayersResponse)
+@directory_router.get("/multiple/", response_model=MultiLayersResponse)
 async def discoveries(
     request: MultiLayersRequest,
     session: ClientSession = Depends(get_session),
@@ -74,7 +74,7 @@ API Data:
 )
 
 
-@directory_router.post("/summarized/", response_model=SummarizedLayersResponse)
+@directory_router.get("/summarized/", response_model=SummarizedLayersResponse)
 async def summarized_directory(
     url: str,
     token: Optional[str] = None,

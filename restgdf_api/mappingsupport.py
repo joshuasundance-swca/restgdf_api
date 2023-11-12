@@ -23,8 +23,6 @@ names = [
     "Unnamed: 14",
 ]
 
-mappingsupport_router = APIRouter(prefix="/mappingsupport", tags=["mappingsupport"])
-
 data_cache = {
     "last_download_time": 0.0,
     "data": pd.DataFrame(),
@@ -54,6 +52,13 @@ def get_df():
         data_cache["last_download_time"] = current_time
 
     return data_cache["data"]
+
+
+mappingsupport_router = APIRouter(
+    prefix="/mappingsupport",
+    tags=["mappingsupport"],
+    on_startup=[get_df],
+)
 
 
 @mappingsupport_router.get("/")
