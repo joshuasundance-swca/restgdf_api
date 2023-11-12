@@ -8,6 +8,6 @@ services:
     env_file:
       - .env
     ports:
-      - "${APP_PORT:-8080}:${APP_PORT:-8080}"
+      - "${APP_PORT:-8080}:8080"
     working_dir: /home/appuser/restgdf_api
     command: ["gunicorn", "app:app"]

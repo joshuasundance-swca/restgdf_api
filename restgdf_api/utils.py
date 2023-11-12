@@ -1,7 +1,9 @@
+"""Utility functions for restgdf_api."""
 from aiohttp import ClientSession
 
 
 async def get_session():
+    """Return an aiohttp ClientSession."""
     async with ClientSession() as session:
         yield session
 
@@ -83,3 +85,39 @@ def abbrev_to_state(abbrev: str) -> str:
         abbrev.replace(".", "").replace(" ", "").upper(),
         "NA",
     )
+
+
+def filter_layers_by_type(
+    layers_json: dict,
+    typestr: str,
+    keys: list[str] = ["name", "geometryType", "url"],
+) -> dict:
+    """Return a dict of layers filtered by type."""
+    return {
+        key: [
+            {k: item[k] for k in keys if k in item}
+            for item in value
+            if isinstance(item, dict) and item.get("type") == typestr
+        ]
+        for key, value in layers_json.items()
+        if isinstance(value, list)
+        and any(
+            isinstance(item, dict) and item.get("type") == typestr for item in value
+        )
+    }
+
+
+def feature_layers_from_response(layers_json: dict) -> dict:
+    """Return a dict of feature layers from a layers response."""
+    return filter_layers_by_type(layers_json, "Feature Layer")
+
+
+def rasters_from_response(layers_json: dict) -> dict:
+    """Return a dict of rasters from a layers response."""
+    return filter_layers_by_type(layers_json, "Raster Layer")
+
+
+def relative_path(remote_url: str, root_url: str) -> str:
+    """Return a relative path from a remote url and a root url."""
+    _path = remote_url.strip("/ ").replace(root_url.strip("/ "), "").strip("/ ")
+    return f"/{_path}/"

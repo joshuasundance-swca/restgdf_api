@@ -10,7 +10,7 @@ from langchain.prompts import ChatPromptTemplate
 from langchain.schema.runnable import RunnablePassthrough
 from restgdf import Directory
 
-from utils import get_session
+from utils import get_session, feature_layers_from_response, rasters_from_response
 from models import (
     LayersResponse,
     MultiLayersRequest,
@@ -35,6 +35,48 @@ async def directory(
             token=token,
         )
         return LayersResponse(layers=rest_obj.data)
+    except Exception as e:
+        return LayersResponse(error=str(e))
+
+
+@directory_router.get("/featurelayers/", response_model=LayersResponse)
+async def featurelayers(
+    url: str,
+    token: Optional[str] = None,
+    session: ClientSession = Depends(get_session),
+):
+    """Discover feature layers in an ArcGIS Services Directory."""
+    try:
+        rest_obj = await Directory.from_url(
+            url,
+            session=session,
+            token=token,
+        )
+        resp = LayersResponse(layers=rest_obj.data)
+        if resp.error or not isinstance(resp.layers, dict):
+            raise Exception(resp.error)
+        return LayersResponse(layers=feature_layers_from_response(resp.layers))
+    except Exception as e:
+        return LayersResponse(error=str(e))
+
+
+@directory_router.get("/rasters/", response_model=LayersResponse)
+async def rasters(
+    url: str,
+    token: Optional[str] = None,
+    session: ClientSession = Depends(get_session),
+):
+    """Discover rasters in an ArcGIS Services Directory."""
+    try:
+        rest_obj = await Directory.from_url(
+            url,
+            session=session,
+            token=token,
+        )
+        resp = LayersResponse(layers=rest_obj.data)
+        if resp.error or not isinstance(resp.layers, dict):
+            raise Exception(resp.error)
+        return LayersResponse(layers=rasters_from_response(resp.layers))
     except Exception as e:
         return LayersResponse(error=str(e))
 

@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from restgdf import Directory, FeatureLayer
 
 from models import GeoDataFrameResponse, LayersResponse
-from utils import get_session
+from utils import get_session, rasters_from_response, feature_layers_from_response
 
 
 def make_clone(
@@ -33,22 +33,58 @@ def make_clone(
         except Exception as e:
             return LayersResponse(error=str(e))
 
+    @router.get("/featurelayers/", response_model=LayersResponse)
+    async def featurelayers(
+        token: Optional[str] = None,
+        session: ClientSession = Depends(get_session),
+    ):
+        """Discover feature layers in an ArcGIS Services Directory."""
+        try:
+            rest_obj = await Directory.from_url(
+                cloned_url,
+                session=session,
+                token=token,
+            )
+            resp = LayersResponse(layers=rest_obj.data)
+            if resp.error or not isinstance(resp.layers, dict):
+                raise Exception(resp.error)
+            return LayersResponse(layers=feature_layers_from_response(resp.layers))
+        except Exception as e:
+            return LayersResponse(error=str(e))
+
+    @router.get("/rasters/", response_model=LayersResponse)
+    async def rasters(
+        token: Optional[str] = None,
+        session: ClientSession = Depends(get_session),
+    ):
+        """Discover rasters in an ArcGIS Services Directory."""
+        try:
+            rest_obj = await Directory.from_url(
+                cloned_url,
+                session=session,
+                token=token,
+            )
+            resp = LayersResponse(layers=rest_obj.data)
+            if resp.error or not isinstance(resp.layers, dict):
+                raise Exception(resp.error)
+            return LayersResponse(layers=rasters_from_response(resp.layers))
+        except Exception as e:
+            return LayersResponse(error=str(e))
+
     @router.get(
-        "/{path:path}/MapServer/{layer_id}",
+        "/{path:path}",
         response_model=GeoDataFrameResponse,
     )
     async def layer(
         path: str,
-        layer_id: int,
         token: Optional[str] = None,
         where: str = "1=1",
         session: ClientSession = Depends(get_session),
     ):
         """Retrieve FeatureLayer."""
-        _ = layer_id
         try:
             rest_obj = await FeatureLayer.from_url(
-                f"{cloned_url}/{path}/MapServer/{layer_id}",
+                f"{cloned_url.strip('/ ')}/{path.strip('/ ')}",
                 token=token or default_token,
                 where=where,
                 session=session,
