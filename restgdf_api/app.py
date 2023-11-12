@@ -1,3 +1,4 @@
+import json
 import os
 from typing import Optional, Any
 
@@ -32,6 +33,10 @@ class LayersResponse(BaseModel):
     layers: dict[str, list[dict[str, Any]]]
 
 
+class SummarizedLayersResponse(LayersResponse):
+    summary: str
+
+
 class UniqueValuesResponse(BaseModel):
     values: list
 
@@ -47,6 +52,58 @@ async def get_layers(url: str, token: Optional[str] = None):
                 token=token,
             )
             return LayersResponse(layers=rest_obj.data)
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error retrieving Layers: {str(e)}",
+        )
+
+
+summarize_server_prompt = ChatPromptTemplate.from_messages(
+    (
+        "user",
+        """
+This data was returned by a geospatial API. Characterize the server by summarizing the data:
+API Data:
+{data}
+""".strip(),
+    ),
+)
+
+
+@app.post("/getlayers/summarize/", response_model=SummarizedLayersResponse)
+async def get_summarized_layers(
+    url: str,
+    token: Optional[str] = None,
+    openai_api_key: Optional[str] = None,
+):
+    """Retrieve Layers from an ArcGIS Services Directory, with summary."""
+    openai_api_key = openai_api_key or os.environ.get("OPENAI_API_KEY", None)
+    if openai_api_key is None:
+        raise HTTPException(
+            status_code=501,
+            detail="Summarization is not enabled.",
+        )
+    desc_chain = (
+        RunnablePassthrough()
+        | summarize_server_prompt
+        | ChatOpenAI(openai_api_key=openai_api_key, model_name="gpt-4-1106-preview")
+        | (lambda output: output.content.strip())
+    )
+    try:
+        async with ClientSession() as session:
+            rest_obj = await Directory.from_url(
+                url,
+                session=session,
+                token=token,
+            )
+            summarized_desc = await desc_chain.ainvoke(
+                {"data": json.dumps(rest_obj.data)},
+            )
+            return SummarizedLayersResponse(
+                layers=rest_obj.data,
+                summary=summarized_desc,
+            )
     except Exception as e:
         raise HTTPException(
             status_code=500,
@@ -141,7 +198,10 @@ async def get_summarized_gdf(
                 desc_chain = (
                     RunnablePassthrough()
                     | summarize_desc_prompt
-                    | ChatOpenAI(openai_api_key=openai_api_key)
+                    | ChatOpenAI(
+                        openai_api_key=openai_api_key,
+                        model_name="gpt-4-1106-preview",
+                    )
                     | (lambda output: output.content.strip())
                 )
                 summarized_desc = await desc_chain.ainvoke(desc)
@@ -152,7 +212,10 @@ async def get_summarized_gdf(
             final_summary_input = gdf.drop(columns=dropcols).to_json()
             final_summary_chain = (
                 summarize_record_prompt
-                | ChatOpenAI(openai_api_key=openai_api_key)
+                | ChatOpenAI(
+                    openai_api_key=openai_api_key,
+                    model_name="gpt-4-1106-preview",
+                )
                 | (lambda output: output.content.strip())
             )
             final_summary = await final_summary_chain.ainvoke(
