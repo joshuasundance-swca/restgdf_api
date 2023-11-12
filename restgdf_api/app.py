@@ -4,7 +4,7 @@ from directory import directory_router
 from layer import layer_router
 from mappingsupport import mappingsupport_router
 
-__version__ = "3.2.1"
+__version__ = "3.3.0"
 
 app = FastAPI(
     title="restgdf_api",
