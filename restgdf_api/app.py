@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 
-from discovery import discovery_router
-from retrieval import retrieval_router
+from directory import directory_router
+from layer import layer_router
 
 __version__ = "3.2.1"
 
@@ -11,5 +11,5 @@ app = FastAPI(
     version=__version__,
 )
 
-app.include_router(discovery_router)
-app.include_router(retrieval_router)
+app.include_router(directory_router)
+app.include_router(layer_router)

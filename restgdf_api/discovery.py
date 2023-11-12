@@ -18,11 +18,11 @@ from models import (
     SummarizedLayersResponse,
 )
 
-discovery_router = APIRouter(prefix="/discovery", tags=["discovery"])
+directory_router = APIRouter(prefix="/directory", tags=["directory"])
 
 
-@discovery_router.post("/", response_model=LayersResponse)
-async def discovery(
+@directory_router.post("/", response_model=LayersResponse)
+async def directory(
     url: str,
     token: Optional[str] = None,
     session: ClientSession = Depends(get_session),
@@ -39,7 +39,7 @@ async def discovery(
         return LayersResponse(error=str(e))
 
 
-@discovery_router.post("/multiple/", response_model=MultiLayersResponse)
+@directory_router.post("/multiple/", response_model=MultiLayersResponse)
 async def discoveries(
     request: MultiLayersRequest,
     session: ClientSession = Depends(get_session),
@@ -74,8 +74,8 @@ API Data:
 )
 
 
-@discovery_router.post("/summarized/", response_model=SummarizedLayersResponse)
-async def summarized_discovery(
+@directory_router.post("/summarized/", response_model=SummarizedLayersResponse)
+async def summarized_directory(
     url: str,
     token: Optional[str] = None,
     openai_api_key: Optional[str] = None,

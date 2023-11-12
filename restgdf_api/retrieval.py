@@ -1,9 +1,9 @@
 import asyncio
 import os
-from typing import Optional, Annotated
+from typing import Optional
 
 from aiohttp import ClientSession
-from fastapi import Depends, HTTPException, Path, APIRouter
+from fastapi import Depends, HTTPException, APIRouter
 from langchain.chat_models import ChatOpenAI
 from langchain.prompts import ChatPromptTemplate
 from langchain.schema.runnable import RunnablePassthrough
@@ -18,11 +18,11 @@ from models import (
     UniqueValuesResponse,
 )
 
-retrieval_router = APIRouter(prefix="/retrieval", tags=["retrieval"])
+layer_router = APIRouter(prefix="/layer", tags=["layer"])
 
 
-@retrieval_router.post("/", response_model=GeoDataFrameResponse)
-async def retrieval(
+@layer_router.post("/", response_model=GeoDataFrameResponse)
+async def layer(
     url: str,
     token: Optional[str] = None,
     where: str = "1=1",
@@ -49,8 +49,8 @@ async def retrieval(
         )
 
 
-@retrieval_router.post("/multiple/", response_model=MultiGeoDataFrameResponse)
-async def retrievals(
+@layer_router.post("/multiple/", response_model=MultiGeoDataFrameResponse)
+async def layers(
     request: MultiGeoDataFrameRequest,
     session: ClientSession = Depends(get_session),
 ):
@@ -108,8 +108,8 @@ Combine these individual summaries of features into a single summary of the data
 )
 
 
-@retrieval_router.post("/summarized/", response_model=SummarizedGeoDataFrameResponse)
-async def summarized_retrieval(
+@layer_router.post("/summarized/", response_model=SummarizedGeoDataFrameResponse)
+async def summarized_layer(
     url: str,
     token: Optional[str] = None,
     where: str = "1=1",
@@ -174,8 +174,8 @@ async def summarized_retrieval(
         )
 
 
-@retrieval_router.post("/head/", response_model=GeoDataFrameResponse)
-async def retrieval_head(
+@layer_router.post("/head/", response_model=GeoDataFrameResponse)
+async def layer_head(
     url: str,
     n: int = 10,
     token: Optional[str] = None,
@@ -203,8 +203,8 @@ async def retrieval_head(
         )
 
 
-@retrieval_router.post("/sample/", response_model=GeoDataFrameResponse)
-async def retrieval_sample(
+@layer_router.post("/sample/", response_model=GeoDataFrameResponse)
+async def layer_sample(
     url: str,
     n: int = 10,
     token: Optional[str] = None,
@@ -232,10 +232,10 @@ async def retrieval_sample(
         )
 
 
-@retrieval_router.post("/unique/{field}/", response_model=UniqueValuesResponse)
+@layer_router.post("/unique/", response_model=UniqueValuesResponse)
 async def unique_values(
     url: str,
-    field: Annotated[str, Path(title="Unique value field")],
+    field: str,
     token: Optional[str] = None,
     session: ClientSession = Depends(get_session),
 ):
