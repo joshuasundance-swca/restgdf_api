@@ -1,9 +1,12 @@
-from fastapi import FastAPI
+from typing import Optional
+
+from aiohttp import ClientSession
+from fastapi import Depends, FastAPI
 
 from directory import directory_router
 from layer import layer_router
 from mappingsupport import mappingsupport_router
-from vcgov import vcgov_router
+from utils import get_session, make_clone
 
 __version__ = "3.5.0"
 
@@ -16,4 +19,22 @@ app = FastAPI(
 app.include_router(mappingsupport_router)
 app.include_router(directory_router)
 app.include_router(layer_router)
-app.include_router(vcgov_router)
+
+
+@app.put("/server", tags=["server"], summary="Add server")
+async def add_server(
+    url: str,
+    name: str,
+    default_token: Optional[str] = None,
+    session: ClientSession = Depends(get_session),
+):
+    try:
+        router = await make_clone(
+            session,
+            url,
+            default_token,
+        )
+        app.include_router(router)
+        return {"result": "success"}
+    except Exception as e:
+        return {"result": "failure", "error": str(e)}

@@ -1,5 +1,12 @@
 """Utility functions for restgdf_api."""
+
+from typing import Optional
+
 from aiohttp import ClientSession
+from fastapi import APIRouter, Depends
+from restgdf import Directory, FeatureLayer
+
+from models import GeoDataFrameResponse, LayersResponse
 
 
 async def get_session():
@@ -87,6 +94,23 @@ def abbrev_to_state(abbrev: str) -> str:
     )
 
 
+async def layers_from_directory(
+    url: str,
+    session: ClientSession,
+    token: Optional[str] = None,
+):
+    """Discover content in an ArcGIS Services Directory."""
+    try:
+        rest_obj = await Directory.from_url(
+            url,
+            session=session,
+            token=token,
+        )
+        return LayersResponse(layers=rest_obj.data)
+    except Exception as e:
+        return LayersResponse(error=str(e))
+
+
 def filter_layers_by_type(
     layers_json: dict,
     typestr: str,
@@ -121,3 +145,116 @@ def relative_path(remote_url: str, root_url: str) -> str:
     """Return a relative path from a remote url and a root url."""
     _path = remote_url.strip("/ ").replace(root_url.strip("/ "), "").strip("/ ")
     return f"/{_path}/"
+
+
+async def fetch_gdf(
+    url: str,
+    session: ClientSession,
+    token: Optional[str] = None,
+    where: str = "1=1",
+    **kwargs,
+) -> GeoDataFrameResponse:
+    try:
+        rest_obj = await FeatureLayer.from_url(
+            url,
+            token=token,
+            session=session,
+            where=where,
+            **kwargs,
+        )
+        gdf = await rest_obj.getgdf()
+        return GeoDataFrameResponse(
+            metadata=rest_obj.jsondict,
+            data=gdf.to_json(),  # Convert to JSON
+        )
+    except Exception as e:
+        return GeoDataFrameResponse(error=str(e))
+
+
+async def make_clone(
+    session: ClientSession,
+    cloned_url: str,
+    default_token: Optional[str] = None,
+    prefix: str = "/clone",
+    tags: list[str] = ["clone"],
+    **kwargs,
+) -> APIRouter:
+    router = APIRouter(prefix=prefix, tags=tags, **kwargs)
+
+    @router.get("/", response_model=LayersResponse)
+    async def directory(
+        token: Optional[str] = None,
+        session: ClientSession = Depends(get_session),
+    ):
+        """Discover content in an ArcGIS Services Directory."""
+        return await layers_from_directory(cloned_url, session, token)
+
+    @router.get("/featurelayers/", response_model=LayersResponse)
+    async def featurelayers(
+        token: Optional[str] = None,
+        session: ClientSession = Depends(get_session),
+    ):
+        """Discover feature layers in an ArcGIS Services Directory."""
+        layers_resp = await layers_from_directory(cloned_url, session, token)
+        return feature_layers_from_response(layers_resp.layers)
+
+    @router.get("/rasters/", response_model=LayersResponse)
+    async def rasters(
+        token: Optional[str] = None,
+        session: ClientSession = Depends(get_session),
+    ):
+        """Discover rasters in an ArcGIS Services Directory."""
+        layers_resp = await layers_from_directory(cloned_url, session, token)
+        return rasters_from_response(layers_resp.layers)
+
+    @router.get(
+        "/{path:path}",
+        response_model=GeoDataFrameResponse,
+    )
+    async def layer(
+        path: str,
+        token: Optional[str] = None,
+        where: str = "1=1",
+        session: ClientSession = Depends(get_session),
+    ):
+        """Retrieve FeatureLayer."""
+        return await fetch_gdf(
+            f"{cloned_url.strip('/ ')}/{path.strip('/ ')}",
+            session,
+            token or default_token,
+            where,
+        )
+
+    def create_layer_endpoint(rel_path: str):
+        """Create a closure that captures the relative path."""
+
+        async def endpoint_function(
+            token: Optional[str] = None,
+            where: str = "1=1",
+            session: ClientSession = Depends(get_session),
+        ):
+            """Endpoint function using captured relative path."""
+            full_url = f"{cloned_url.strip('/ ')}/{rel_path.strip('/ ')}"
+            return await fetch_gdf(
+                full_url,
+                session,
+                token or default_token,
+                where,
+            )
+
+        return endpoint_function
+
+    layers_data = await layers_from_directory(cloned_url, session, default_token)
+    feature_layers = feature_layers_from_response(layers_data.layers)
+    for service_name, layers in feature_layers.items():
+        for _layer in layers:
+            rel_path = relative_path(_layer["url"], root_url=cloned_url)
+            layer_endpoint = create_layer_endpoint(rel_path)
+            router.add_api_route(
+                path=rel_path,
+                endpoint=layer_endpoint,
+                response_model=GeoDataFrameResponse,
+                summary=f"{service_name}/{_layer['name']}",
+            )
+
+    return router

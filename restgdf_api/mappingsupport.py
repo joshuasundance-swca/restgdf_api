@@ -3,6 +3,7 @@ import time
 import numpy as np
 import pandas as pd
 from fastapi import Depends, APIRouter
+from pydantic import BaseModel, Field
 
 url = "https://mappingsupport.com/p/surf_gis/list-federal-state-county-city-GIS-servers.csv"
 names = [
@@ -61,61 +62,96 @@ mappingsupport_router = APIRouter(
 )
 
 
-@mappingsupport_router.get("/")
+class StateRequest(BaseModel):
+    state_name: str = Field(
+        ...,
+        example="Florida",
+        description="Full name of the state",
+    )
+
+
+class CountyRequest(StateRequest):
+    county_name: str = Field(
+        ...,
+        example="Volusia",
+        description="Full name of the county",
+    )
+
+
+class CityRequest(StateRequest):
+    city_name: str = Field(
+        ...,
+        example="Daytona Beach",
+        description="Full name of the city",
+    )
+
+
+class TownRequest(StateRequest):
+    town_name: str = Field(
+        ...,
+        example="Daytona Beach Shores",
+        description="Full name of the town",
+    )
+
+
+@mappingsupport_router.get(
+    "/",
+    description="This endpoint uses data from https://mappingsupport.com/p/surf_gis/list-federal-state-county-city-GIS-servers.csv",
+)
 async def mappingsupport(df: pd.DataFrame = Depends(get_df)):
     """Return all data as json."""
     return df.to_dict(orient="records")
 
 
-@mappingsupport_router.get("/state/{state_name}")
+@mappingsupport_router.get(
+    "/state/{state_name}",
+    description="This endpoint uses data from https://mappingsupport.com/p/surf_gis/list-federal-state-county-city-GIS-servers.csv",
+)
 async def state(
-    state_name: str,
+    request: StateRequest,
     df: pd.DataFrame = Depends(get_df),
 ):
     """Return data for a state as json."""
-    return df.loc[df["State"] == state_name].to_dict(orient="records")
+    return df.loc[df["State"] == request.state_name].to_dict(orient="records")
 
 
-@mappingsupport_router.get("/state/{state_name}/county/{county_name}")
+@mappingsupport_router.get(
+    "/state/{state_name}/county/{county_name}",
+    description="This endpoint uses data from https://mappingsupport.com/p/surf_gis/list-federal-state-county-city-GIS-servers.csv",
+)
 async def county(
-    state_name: str,
-    county_name: str,
+    request: CountyRequest,
     df: pd.DataFrame = Depends(get_df),
 ):
     """Return data for a county as json."""
-    m1 = df["State"] == state_name
-    m2 = df["County"] == county_name
+    m1 = df["State"] == request.state_name
+    m2 = df["County"] == request.county_name
     return df.loc[m1 & m2].to_dict(orient="records")
 
 
-@mappingsupport_router.get("/state/{state_name}/city/{city_name}")
+@mappingsupport_router.get(
+    "/state/{state_name}/city/{city_name}",
+    description="This endpoint uses data from https://mappingsupport.com/p/surf_gis/list-federal-state-county-city-GIS-servers.csv",
+)
 async def city(
-    state_name: str,
-    city_name: str,
+    request: CityRequest,
     df: pd.DataFrame = Depends(get_df),
 ):
     """Return data for a city as json."""
-    m1 = df["State"] == state_name
-    m2 = df["City"] == city_name
+    m1 = df["State"] == request.state_name
+    m2 = df["City"] == request.city_name
     return df.loc[m1 & m2].to_dict(orient="records")
 
 
-@mappingsupport_router.get("/state/{state_name}/town/{town_name}")
+@mappingsupport_router.get(
+    "/state/{state_name}/town/{town_name}",
+    description="This endpoint uses data from https://mappingsupport.com/p/surf_gis/list-federal-state-county-city-GIS-servers.csv",
+)
 async def town(
-    state_name: str,
-    town_name: str,
+    request: TownRequest,
     df: pd.DataFrame = Depends(get_df),
 ):
     """Return data for a town as json."""
-    m1 = df["State"] == state_name
-    m2 = df["Town"] == town_name
+    m1 = df["State"] == request.state_name
+    m2 = df["Town"] == request.town_name
     return df.loc[m1 & m2].to_dict(orient="records")
-
-
-@mappingsupport_router.get("/fips/{fips_code}")
-async def fips(
-    fips_code: str,
-    df: pd.DataFrame = Depends(get_df),
-):
-    """Return data for a FIPS code as json."""
-    return df.loc[df["FIPS"].astype(str) == fips_code].to_dict(orient="records")
