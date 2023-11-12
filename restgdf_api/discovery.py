@@ -27,7 +27,7 @@ async def discovery(
     token: Optional[str] = None,
     session: ClientSession = Depends(get_session),
 ):
-    """Discover content in a ArcGIS Services Directory."""
+    """Discover content in an ArcGIS Services Directory."""
     try:
         rest_obj = await Directory.from_url(
             url,
@@ -81,7 +81,7 @@ async def summarized_discovery(
     openai_api_key: Optional[str] = None,
     session: ClientSession = Depends(get_session),
 ):
-    """Discover and summarize content in a ArcGIS Services Directory."""
+    """Discover and summarize content in an ArcGIS Services Directory."""
     openai_api_key = openai_api_key or os.environ.get("OPENAI_API_KEY", None)
     if openai_api_key is None:
         raise HTTPException(
