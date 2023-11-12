@@ -8,7 +8,7 @@ from layer import layer_router
 from mappingsupport import mappingsupport_router
 from utils import get_session, make_clone
 
-__version__ = "3.5.0"
+__version__ = "3.6.0"
 
 app = FastAPI(
     title="restgdf_api",
