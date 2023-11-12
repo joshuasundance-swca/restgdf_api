@@ -5,7 +5,7 @@ from layer import layer_router
 from mappingsupport import mappingsupport_router
 from vcgov import vcgov_router
 
-__version__ = "3.4.0"
+__version__ = "3.5.0"
 
 app = FastAPI(
     title="restgdf_api",
