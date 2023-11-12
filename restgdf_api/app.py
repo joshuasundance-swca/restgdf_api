@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from discovery import discovery_router
 from retrieval import retrieval_router
 
-__version__ = "3.2.0"
+__version__ = "3.2.1"
 
 app = FastAPI(
     title="restgdf_api",
