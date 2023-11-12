@@ -29,7 +29,7 @@ class SummarizedGeoDataFrameResponse(GeoDataFrameResponse):
 
 
 class LayersResponse(BaseModel):
-    layers: dict[str, dict[str, list[dict[str, Any]]]]
+    layers: dict[str, list[dict[str, Any]]]
 
 
 class UniqueValuesResponse(BaseModel):
