@@ -2,6 +2,7 @@ from fastapi import FastAPI
 
 from directory import directory_router
 from layer import layer_router
+from mappingsupport import mappingsupport_router
 
 __version__ = "3.2.1"
 
@@ -11,5 +12,6 @@ app = FastAPI(
     version=__version__,
 )
 
+app.include_router(mappingsupport_router)
 app.include_router(directory_router)
 app.include_router(layer_router)
