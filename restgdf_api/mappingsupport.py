@@ -77,7 +77,7 @@ async def county(
     county_name: str,
     df: pd.DataFrame = Depends(get_df),
 ):
-    """Return data for a state as json."""
+    """Return data for a county as json."""
     m1 = df["State"] == state_name
     m2 = df["County"] == county_name
     return df.loc[m1 & m2].to_dict(orient="records")
@@ -89,7 +89,7 @@ async def city(
     city_name: str,
     df: pd.DataFrame = Depends(get_df),
 ):
-    """Return data for a state as json."""
+    """Return data for a city as json."""
     m1 = df["State"] == state_name
     m2 = df["City"] == city_name
     return df.loc[m1 & m2].to_dict(orient="records")
@@ -101,7 +101,7 @@ async def town(
     town_name: str,
     df: pd.DataFrame = Depends(get_df),
 ):
-    """Return data for a state as json."""
+    """Return data for a town as json."""
     m1 = df["State"] == state_name
     m2 = df["Town"] == town_name
     return df.loc[m1 & m2].to_dict(orient="records")
@@ -112,5 +112,5 @@ async def fips(
     fips_code: str,
     df: pd.DataFrame = Depends(get_df),
 ):
-    """Return data for a state as json."""
+    """Return data for a FIPS code as json."""
     return df.loc[df["FIPS"].astype(str) == fips_code].to_dict(orient="records")
