@@ -4,5 +4,5 @@ langchain==0.0.334
 langsmith==0.0.63
 openai==1.2.3
 pydantic==2.4.2
-restgdf==0.8.1
+restgdf==0.8.2
 uvicorn==0.24.0.post1
