@@ -4,6 +4,7 @@
 [![python](https://img.shields.io/badge/Python-3.11-3776AB.svg?style=flat&logo=python&logoColor=white)](https://www.python.org)
 
 [![Push to Docker Hub](https://github.com/joshuasundance-swca/restgdf_api/actions/workflows/docker-hub.yml/badge.svg)](https://github.com/joshuasundance-swca/restgdf_api/actions/workflows/docker-hub.yml)
+[![restgdf_api on Docker Hub](https://img.shields.io/docker/v/joshuasundance/restgdf_api?label=restgdf_api&logo=docker)](https://hub.docker.com/r/joshuasundance/restgdf_api)
 [![Docker Image Size (tag)](https://img.shields.io/docker/image-size/joshuasundance/restgdf_api/latest)](https://hub.docker.com/r/joshuasundance/restgdf_api)
 
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit)
