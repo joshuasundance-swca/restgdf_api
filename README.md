@@ -14,7 +14,7 @@
 [![security: bandit](https://img.shields.io/badge/security-bandit-yellow.svg)](https://github.com/PyCQA/bandit)
 
 
-🤖 This `README` was written by GPT-4.
+🤖 This `README` was written by GPT-4. 🤖
 
 ## Overview
 `restgdf_api` is an asynchronous server powered by [FastAPI](https://github.com/tiangolo/fastapi) and the open-source [restgdf](https://github.com/joshuasundance-swca/restgdf) library. It acts as an efficient, user-friendly proxy for ArcGIS servers, offering high-speed interactions with ArcGIS FeatureLayers. With comprehensive OpenAPI documentation, this API simplifies and accelerates the process of accessing and managing GIS data, making it an ideal alternative to the traditional ArcGIS API for Python.
@@ -37,7 +37,7 @@
 
 ## Installation
 
-### Option 1: Docker Hub Deployment (Recommended)
+### Option 1: Docker Hub Deployment
 ```bash
 docker run --name restgdf_api -p 8080:8080 joshuasundance/restgdf_api:latest
 ```
@@ -49,8 +49,14 @@ cd restgdf_api
 docker compose up
 ```
 
-### Option 3: Manual Local Installation
-Install Python dependencies:
+### Option 3: Deploy on Kubernetes
+```bash
+git clone https://github.com/joshuasundance-swca/restgdf_api.git
+cd restgdf_api
+kubectl apply -f kubernetes/resources.yaml
+```
+
+### Option 4: Manual Local Installation
 ```bash
 git clone https://github.com/joshuasundance-swca/restgdf_api.git
 cd restgdf_api
