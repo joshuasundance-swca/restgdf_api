@@ -80,6 +80,8 @@ state_dict = {
     for k, v in us_state_to_abbrev.items()
 }
 
+abbrev_dict = {v: k for k, v in state_dict.items()}
+
 
 def state_to_abbrev(state: str) -> str:
     """Convert a state name to its abbreviation."""

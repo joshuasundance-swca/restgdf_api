@@ -1,0 +1,18 @@
+FROM python:3.11-slim-bookworm
+
+RUN adduser --uid 1000 --disabled-password --gecos '' appuser
+USER 1000
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PATH="/home/appuser/.local/bin:$PATH"
+
+RUN pip install --user --no-cache-dir --upgrade pip
+COPY ./requirements.txt /home/appuser/requirements.txt
+RUN pip install --user --no-cache-dir  --upgrade -r /home/appuser/requirements.txt
+
+RUN pip install --user --no-cache-dir --upgrade ipywidgets jupyterlab
+
+EXPOSE 8081
+
+CMD ["jupyter", "lab", "--ip", "0.0.0.0", "--port", "8081", "--no-browser"]

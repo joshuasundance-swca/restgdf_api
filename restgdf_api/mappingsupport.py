@@ -1,9 +1,12 @@
 import time
+from typing import Union
 
 import numpy as np
 import pandas as pd
 from fastapi import Depends, APIRouter
 from pydantic import BaseModel, Field
+from pydantic.functional_validators import AfterValidator
+from typing_extensions import Annotated
 
 url = "https://mappingsupport.com/p/surf_gis/list-federal-state-county-city-GIS-servers.csv"
 names = [
@@ -30,13 +33,26 @@ data_cache = {
 }
 
 
+def prep_str(s: Union[str, None]) -> Union[str, None]:
+    return s.lower().strip().replace(" ", "_") if s else s
+
+
 def get_df() -> pd.DataFrame:
-    return pd.read_csv(
-        url,
-        encoding="cp1252",
-        skip_blank_lines=True,
-        names=names,
-    ).replace([np.inf, -np.inf, np.nan], None)
+    return (
+        pd.read_csv(
+            url,
+            encoding="cp1252",
+            skip_blank_lines=True,
+            names=names,
+        )
+        .replace([np.inf, -np.inf, np.nan], None)
+        .assign(
+            **{
+                c: (lambda df, c=c: df[c].apply(prep_str))
+                for c in ["State", "County", "Town"]
+            },
+        )
+    )
 
 
 def get_df_depends() -> pd.DataFrame:
@@ -64,8 +80,11 @@ mappingsupport_router = APIRouter(
 )
 
 
+PreppedStr = Annotated[str, AfterValidator(prep_str)]
+
+
 class StateRequest(BaseModel):
-    state_name: str = Field(
+    state_name: PreppedStr = Field(
         ...,
         example="Florida",
         description="Full name of the state",
@@ -73,7 +92,7 @@ class StateRequest(BaseModel):
 
 
 class CountyRequest(StateRequest):
-    county_name: str = Field(
+    county_name: PreppedStr = Field(
         ...,
         example="Volusia",
         description="Full name of the county",
@@ -81,7 +100,7 @@ class CountyRequest(StateRequest):
 
 
 class CityRequest(StateRequest):
-    city_name: str = Field(
+    city_name: PreppedStr = Field(
         ...,
         example="Daytona Beach",
         description="Full name of the city",
@@ -89,14 +108,14 @@ class CityRequest(StateRequest):
 
 
 class TownRequest(StateRequest):
-    town_name: str = Field(
+    town_name: PreppedStr = Field(
         ...,
         example="Daytona Beach Shores",
         description="Full name of the town",
     )
 
 
-@mappingsupport_router.post(
+@mappingsupport_router.get(
     "/",
     description="This endpoint uses data from https://mappingsupport.com/p/surf_gis/list-federal-state-county-city-GIS-servers.csv",
 )
@@ -106,7 +125,7 @@ async def mappingsupport(df: pd.DataFrame = Depends(get_df_depends)):
 
 
 @mappingsupport_router.post(
-    "/state/{state_name}",
+    "/state/",
     description="This endpoint uses data from https://mappingsupport.com/p/surf_gis/list-federal-state-county-city-GIS-servers.csv",
 )
 async def state(
@@ -118,7 +137,7 @@ async def state(
 
 
 @mappingsupport_router.post(
-    "/state/{state_name}/county/{county_name}",
+    "/county/",
     description="This endpoint uses data from https://mappingsupport.com/p/surf_gis/list-federal-state-county-city-GIS-servers.csv",
 )
 async def county(
@@ -132,7 +151,7 @@ async def county(
 
 
 @mappingsupport_router.post(
-    "/state/{state_name}/city/{city_name}",
+    "/city/",
     description="This endpoint uses data from https://mappingsupport.com/p/surf_gis/list-federal-state-county-city-GIS-servers.csv",
 )
 async def city(
@@ -146,7 +165,7 @@ async def city(
 
 
 @mappingsupport_router.post(
-    "/state/{state_name}/town/{town_name}",
+    "/town/",
     description="This endpoint uses data from https://mappingsupport.com/p/surf_gis/list-federal-state-county-city-GIS-servers.csv",
 )
 async def town(
