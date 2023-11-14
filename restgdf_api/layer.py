@@ -21,10 +21,10 @@ async def layer(
     session: ClientSession = Depends(get_session),
 ):
     """Retrieve FeatureLayer."""
-    return fetch_gdf(url, session, token, where)
+    return await fetch_gdf(url, session, token, where)
 
 
-@layer_router.get("/multiple/", response_model=MultiGeoDataFrameResponse)
+@layer_router.post("/multiple/", response_model=MultiGeoDataFrameResponse)
 async def layers(
     request: MultiGeoDataFrameRequest,
     session: ClientSession = Depends(get_session),

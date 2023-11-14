@@ -30,7 +30,16 @@ data_cache = {
 }
 
 
-def get_df():
+def get_df() -> pd.DataFrame:
+    return pd.read_csv(
+        url,
+        encoding="cp1252",
+        skip_blank_lines=True,
+        names=names,
+    ).replace([np.inf, -np.inf, np.nan], None)
+
+
+def get_df_depends() -> pd.DataFrame:
     global data_cache
 
     # Get the current time
@@ -42,14 +51,7 @@ def get_df():
         or len(data_cache["data"]) == 0
     ):
         # Download the data and update the time
-        df = pd.read_csv(
-            url,
-            encoding="cp1252",
-            skip_blank_lines=True,
-            names=names,
-        ).replace([np.inf, -np.inf, np.nan], None)
-
-        data_cache["data"] = df
+        data_cache["data"] = get_df()
         data_cache["last_download_time"] = current_time
 
     return data_cache["data"]
@@ -58,7 +60,7 @@ def get_df():
 mappingsupport_router = APIRouter(
     prefix="/mappingsupport",
     tags=["mappingsupport"],
-    on_startup=[get_df],
+    on_startup=[get_df_depends],
 )
 
 
@@ -94,34 +96,34 @@ class TownRequest(StateRequest):
     )
 
 
-@mappingsupport_router.get(
+@mappingsupport_router.post(
     "/",
     description="This endpoint uses data from https://mappingsupport.com/p/surf_gis/list-federal-state-county-city-GIS-servers.csv",
 )
-async def mappingsupport(df: pd.DataFrame = Depends(get_df)):
+async def mappingsupport(df: pd.DataFrame = Depends(get_df_depends)):
     """Return all data as json."""
     return df.to_dict(orient="records")
 
 
-@mappingsupport_router.get(
+@mappingsupport_router.post(
     "/state/{state_name}",
     description="This endpoint uses data from https://mappingsupport.com/p/surf_gis/list-federal-state-county-city-GIS-servers.csv",
 )
 async def state(
     request: StateRequest,
-    df: pd.DataFrame = Depends(get_df),
+    df: pd.DataFrame = Depends(get_df_depends),
 ):
     """Return data for a state as json."""
     return df.loc[df["State"] == request.state_name].to_dict(orient="records")
 
 
-@mappingsupport_router.get(
+@mappingsupport_router.post(
     "/state/{state_name}/county/{county_name}",
     description="This endpoint uses data from https://mappingsupport.com/p/surf_gis/list-federal-state-county-city-GIS-servers.csv",
 )
 async def county(
     request: CountyRequest,
-    df: pd.DataFrame = Depends(get_df),
+    df: pd.DataFrame = Depends(get_df_depends),
 ):
     """Return data for a county as json."""
     m1 = df["State"] == request.state_name
@@ -129,13 +131,13 @@ async def county(
     return df.loc[m1 & m2].to_dict(orient="records")
 
 
-@mappingsupport_router.get(
+@mappingsupport_router.post(
     "/state/{state_name}/city/{city_name}",
     description="This endpoint uses data from https://mappingsupport.com/p/surf_gis/list-federal-state-county-city-GIS-servers.csv",
 )
 async def city(
     request: CityRequest,
-    df: pd.DataFrame = Depends(get_df),
+    df: pd.DataFrame = Depends(get_df_depends),
 ):
     """Return data for a city as json."""
     m1 = df["State"] == request.state_name
@@ -143,13 +145,13 @@ async def city(
     return df.loc[m1 & m2].to_dict(orient="records")
 
 
-@mappingsupport_router.get(
+@mappingsupport_router.post(
     "/state/{state_name}/town/{town_name}",
     description="This endpoint uses data from https://mappingsupport.com/p/surf_gis/list-federal-state-county-city-GIS-servers.csv",
 )
 async def town(
     request: TownRequest,
-    df: pd.DataFrame = Depends(get_df),
+    df: pd.DataFrame = Depends(get_df_depends),
 ):
     """Return data for a town as json."""
     m1 = df["State"] == request.state_name

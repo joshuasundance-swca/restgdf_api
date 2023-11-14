@@ -11,9 +11,9 @@ from models import (
 )
 from utils import (
     get_session,
-    feature_layers_from_response,
-    rasters_from_response,
     layers_from_directory,
+    feature_layers_from_directory,
+    rasters_from_directory,
 )
 
 directory_router = APIRouter(prefix="/directory", tags=["directory"])
@@ -36,12 +36,7 @@ async def featurelayers(
     session: ClientSession = Depends(get_session),
 ):
     """Discover feature layers in an ArcGIS Services Directory."""
-    layers_resp = await layers_from_directory(url, session, token)
-    return (
-        LayersResponse(layers=feature_layers_from_response(layers_resp.layers))
-        if not layers_resp.error
-        else LayersResponse(error=layers_resp.error)
-    )
+    return await feature_layers_from_directory(url, session, token)
 
 
 @directory_router.get("/rasters/", response_model=LayersResponse)
@@ -51,15 +46,10 @@ async def rasters(
     session: ClientSession = Depends(get_session),
 ):
     """Discover rasters in an ArcGIS Services Directory."""
-    layers_resp = await layers_from_directory(url, session, token)
-    return (
-        LayersResponse(layers=rasters_from_response(layers_resp.layers))
-        if not layers_resp.error
-        else LayersResponse(error=layers_resp.error)
-    )
+    return await rasters_from_directory(url, session, token)
 
 
-@directory_router.get("/multiple/", response_model=MultiLayersResponse)
+@directory_router.post("/multiple/", response_model=MultiLayersResponse)
 async def discoveries(
     request: MultiLayersRequest,
     session: ClientSession = Depends(get_session),

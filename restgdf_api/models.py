@@ -29,7 +29,7 @@ class MultiGeoDataFrameResponse(BaseModel):
 
 
 class LayersResponse(BaseModel):
-    layers: Optional[dict[str, list[dict[str, Any]]]] = Field(
+    layers: Optional[list] = Field(
         None,
         description="Layer JSON",
     )

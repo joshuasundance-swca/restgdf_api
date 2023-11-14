@@ -94,6 +94,20 @@ def abbrev_to_state(abbrev: str) -> str:
     )
 
 
+async def get_directory(
+    url: str,
+    session: ClientSession,
+    token: Optional[str] = None,
+) -> Directory:
+    rest_obj = await Directory.from_url(
+        url,
+        session=session,
+        token=token,
+    )
+    _ = await rest_obj.crawl()
+    return rest_obj
+
+
 async def layers_from_directory(
     url: str,
     session: ClientSession,
@@ -101,44 +115,36 @@ async def layers_from_directory(
 ):
     """Discover content in an ArcGIS Services Directory."""
     try:
-        rest_obj = await Directory.from_url(
-            url,
-            session=session,
-            token=token,
-        )
-        return LayersResponse(layers=rest_obj.data)
+        rest_obj = await get_directory(url, session, token)
+        return dict(layers=rest_obj.services)
     except Exception as e:
-        return LayersResponse(error=str(e))
+        return dict(error=str(e))
 
 
-def filter_layers_by_type(
-    layers_json: dict,
-    typestr: str,
-    keys: list[str] = ["name", "geometryType", "url"],
+async def feature_layers_from_directory(
+    url: str,
+    session: ClientSession,
+    token: Optional[str] = None,
 ) -> dict:
-    """Return a dict of layers filtered by type."""
-    return {
-        key: [
-            {k: item[k] for k in keys if k in item}
-            for item in value
-            if isinstance(item, dict) and item.get("type") == typestr
-        ]
-        for key, value in layers_json.items()
-        if isinstance(value, list)
-        and any(
-            isinstance(item, dict) and item.get("type") == typestr for item in value
-        )
-    }
+    """Discover content in an ArcGIS Services Directory."""
+    try:
+        rest_obj = await get_directory(url, session, token)
+        return dict(layers=rest_obj.feature_layers())
+    except Exception as e:
+        return dict(error=str(e))
 
 
-def feature_layers_from_response(layers_json: dict) -> dict:
-    """Return a dict of feature layers from a layers response."""
-    return filter_layers_by_type(layers_json, "Feature Layer")
-
-
-def rasters_from_response(layers_json: dict) -> dict:
-    """Return a dict of rasters from a layers response."""
-    return filter_layers_by_type(layers_json, "Raster Layer")
+async def rasters_from_directory(
+    url: str,
+    session: ClientSession,
+    token: Optional[str] = None,
+):
+    """Discover content in an ArcGIS Services Directory."""
+    try:
+        rest_obj = await get_directory(url, session, token)
+        return dict(layers=rest_obj.rasters())
+    except Exception as e:
+        return dict(error=str(e))
 
 
 def relative_path(remote_url: str, root_url: str) -> str:
@@ -164,7 +170,7 @@ async def fetch_gdf(
         )
         gdf = await rest_obj.getgdf()
         return GeoDataFrameResponse(
-            metadata=rest_obj.jsondict,
+            metadata=rest_obj.metadata,
             data=gdf.to_json(),  # Convert to JSON
         )
     except Exception as e:
@@ -195,8 +201,7 @@ async def make_clone(
         session: ClientSession = Depends(get_session),
     ):
         """Discover feature layers in an ArcGIS Services Directory."""
-        layers_resp = await layers_from_directory(cloned_url, session, token)
-        return feature_layers_from_response(layers_resp.layers)
+        return await feature_layers_from_directory(cloned_url, session, token)
 
     @router.get("/rasters/", response_model=LayersResponse)
     async def rasters(
@@ -204,11 +209,10 @@ async def make_clone(
         session: ClientSession = Depends(get_session),
     ):
         """Discover rasters in an ArcGIS Services Directory."""
-        layers_resp = await layers_from_directory(cloned_url, session, token)
-        return rasters_from_response(layers_resp.layers)
+        return await rasters_from_directory(cloned_url, session, token)
 
     @router.get(
-        "/{path:path}",
+        "/{path:path}/",
         response_model=GeoDataFrameResponse,
     )
     async def layer(
@@ -244,17 +248,22 @@ async def make_clone(
 
         return endpoint_function
 
-    layers_data = await layers_from_directory(cloned_url, session, default_token)
-    feature_layers = feature_layers_from_response(layers_data.layers)
-    for service_name, layers in feature_layers.items():
-        for _layer in layers:
-            rel_path = relative_path(_layer["url"], root_url=cloned_url)
-            layer_endpoint = create_layer_endpoint(rel_path)
-            router.add_api_route(
-                path=rel_path,
-                endpoint=layer_endpoint,
-                response_model=GeoDataFrameResponse,
-                summary=f"{service_name}/{_layer['name']}",
-            )
+    feature_layers = await feature_layers_from_directory(
+        cloned_url,
+        session,
+        default_token,
+    )
+    if "error" in feature_layers:
+        raise ValueError(feature_layers["error"])
+    for _layer in feature_layers["layers"]:
+        layer_name = _layer["metadata"]["name"]
+        rel_path = relative_path(_layer["url"], root_url=cloned_url)
+        layer_endpoint = create_layer_endpoint(rel_path)
+        router.add_api_route(
+            path=rel_path,
+            endpoint=layer_endpoint,
+            response_model=GeoDataFrameResponse,
+            summary=layer_name,
+        )
 
     return router
