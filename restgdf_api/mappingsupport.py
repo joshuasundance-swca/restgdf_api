@@ -99,14 +99,6 @@ class CountyRequest(StateRequest):
     )
 
 
-class CityRequest(StateRequest):
-    city_name: PreppedStr = Field(
-        ...,
-        example="Daytona Beach",
-        description="Full name of the city",
-    )
-
-
 class TownRequest(StateRequest):
     town_name: PreppedStr = Field(
         ...,
@@ -147,20 +139,6 @@ async def county(
     """Return data for a county as json."""
     m1 = df["State"] == request.state_name
     m2 = df["County"] == request.county_name
-    return df.loc[m1 & m2].to_dict(orient="records")
-
-
-@mappingsupport_router.post(
-    "/city/",
-    description="This endpoint uses data from https://mappingsupport.com/p/surf_gis/list-federal-state-county-city-GIS-servers.csv",
-)
-async def city(
-    request: CityRequest,
-    df: pd.DataFrame = Depends(get_df_depends),
-):
-    """Return data for a city as json."""
-    m1 = df["State"] == request.state_name
-    m2 = df["City"] == request.city_name
     return df.loc[m1 & m2].to_dict(orient="records")
 
 
