@@ -7,12 +7,17 @@
 [![restgdf_api on Docker Hub](https://img.shields.io/docker/v/joshuasundance/restgdf_api?label=restgdf_api&logo=docker)](https://hub.docker.com/r/joshuasundance/restgdf_api)
 [![Docker Image Size (tag)](https://img.shields.io/docker/image-size/joshuasundance/restgdf_api/latest)](https://hub.docker.com/r/joshuasundance/restgdf_api)
 
+![Code Climate maintainability](https://img.shields.io/codeclimate/maintainability/joshuasundance-swca/restgdf_api)
+![Code Climate issues](https://img.shields.io/codeclimate/issues/joshuasundance-swca/restgdf_api)
+![Code Climate technical debt](https://img.shields.io/codeclimate/tech-debt/joshuasundance-swca/restgdf_api)
+
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/charliermarsh/ruff/main/assets/badge/v1.json)](https://github.com/charliermarsh/ruff)
 [![Checked with mypy](http://www.mypy-lang.org/static/mypy_badge.svg)](http://mypy-lang.org/)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 [![security: bandit](https://img.shields.io/badge/security-bandit-yellow.svg)](https://github.com/PyCQA/bandit)
+![Known Vulnerabilities](https://snyk.io/test/github/joshuasundance-swca/restgdf_api/badge.svg)
 
 
 🤖 This `README` was written by GPT-4. 🤖
