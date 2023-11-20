@@ -1,4 +1,4 @@
-aiohttp==3.8.6
+aiohttp==3.9.0
 fastapi==0.104.1
 gunicorn==21.2.0
 numpy==1.26.2
