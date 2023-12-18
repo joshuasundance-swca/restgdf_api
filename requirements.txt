@@ -4,5 +4,5 @@ gunicorn==21.2.0
 numpy==1.26.2
 pandas==2.1.4
 pydantic==2.5.2
-restgdf==0.9.8
+restgdf==1.0.0
 uvicorn==0.24.0.post1
