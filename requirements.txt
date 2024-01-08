@@ -1,7 +1,7 @@
 aiohttp==3.9.1
 fastapi==0.108.0
 gunicorn==21.2.0
-numpy==1.26.2
+numpy==1.26.3
 pandas==2.1.4
 pydantic==2.5.3
 restgdf==1.0.0
