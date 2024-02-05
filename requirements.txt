@@ -1,5 +1,5 @@
 aiohttp==3.9.2
-fastapi==0.109.0
+fastapi==0.109.1
 gunicorn==21.2.0
 numpy==1.26.3
 pandas==2.2.0
