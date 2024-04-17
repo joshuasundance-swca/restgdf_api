@@ -1,8 +1,8 @@
-aiohttp==3.9.3
-fastapi==0.109.2
+aiohttp==3.9.4
+fastapi==0.110.1
 gunicorn==22.0.0
 numpy==1.26.4
-pandas==2.2.0
-pydantic==2.6.1
+pandas==2.2.2
+pydantic==2.7.0
 restgdf==1.0.0
-uvicorn==0.27.1
+uvicorn==0.29.0
