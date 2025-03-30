@@ -1,6 +1,6 @@
 aiohttp==3.9.4
 fastapi==0.110.1
-gunicorn==22.0.0
+gunicorn==23.0.0
 numpy==1.26.4
 pandas==2.2.2
 pydantic==2.7.0
